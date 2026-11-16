@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { initialScrollMin, layoutWeek, weekStart, type CalendarBlock } from '../lib/calendar';
 import { addDays, toLocalDate, type LocalDate } from '../lib/dates';
 import type { Entry } from '../lib/types';
+import { emotionColor, emotionFill } from '../content/emotionColors';
 
 export const HOUR_PX = 44;
 const PX_PER_MIN = HOUR_PX / 60;
@@ -75,7 +76,7 @@ export function WeekCalendar({ entries, initialDate, onSelect }: Props) {
             {days.map((d) => (
               <div key={d.date}>
                 {d.allDay.map((e) => (
-                  <button type="button" key={e.id} class="chip-event" style={tone(e.intensityBefore)} onClick={() => onSelect(e.id)} aria-label={`Sin hora: ${e.thought}`}>
+                  <button type="button" key={e.id} class="chip-event" style={paint(e)} onClick={() => onSelect(e.id)} aria-label={`Sin hora: ${e.thought}`}>
                     {e.intensityBefore}
                   </button>
                 ))}
@@ -103,8 +104,23 @@ export function WeekCalendar({ entries, initialDate, onSelect }: Props) {
           </div>
         </div>
       </div>
+      {(() => {
+        const inWeek = weekEmotions([...new Set(days.flatMap((d) => [...d.blocks.map((b) => b.entry), ...d.allDay]))]);
+        return (
+          inWeek.length > 0 && (
+            <ul class="emotion-legend" aria-label="Emociones de la semana">
+              {inWeek.map((name) => (
+                <li key={name}>
+                  <span class="swatch" style={{ background: emotionColor(name) }} />
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )
+        );
+      })()}
       <p class="cal-legend">
-        Cada bloque es un pensamiento: el alto es cuánto duró y el color, qué tan intenso fue.
+        Cada bloque es un pensamiento: el alto es cuánto duró, el color es la emoción (en franjas si fueron varias) y más fuerte es más intenso.
       </p>
     </section>
   );
@@ -123,7 +139,7 @@ function Block({ block: b, onSelect }: { block: CalendarBlock; onSelect: (id: st
         height: px((b.endMin - b.startMin) * PX_PER_MIN),
         left: `${b.lane * width}%`,
         width: `${width}%`,
-        ...tone(b.entry.intensityBefore),
+        ...paint(b.entry),
       }}
       aria-label={`${b.entry.startTime ?? ''} ${b.entry.thought}, intensidad ${b.entry.intensityBefore}`}
       onClick={() => onSelect(b.entry.id)}
@@ -133,7 +149,20 @@ function Block({ block: b, onSelect }: { block: CalendarBlock; onSelect: (id: st
   );
 }
 
-/** Stronger accent the more intense the thought was (0–10). */
-function tone(intensity: number) {
-  return { '--tone': `${20 + intensity * 7}%` } as Record<string, string>;
+/** Emotion stripes, stronger the more intense the thought was (0–10). */
+function paint(e: Entry) {
+  return { '--tone': `${35 + e.intensityBefore * 6}%`, '--fill': emotionFill(e.emotions) } as Record<string, string>;
+}
+
+/** Emotions present in the week, most frequent first. */
+function weekEmotions(entries: Entry[]): string[] {
+  const counts = new Map<string, { name: string; n: number }>();
+  for (const e of entries)
+    for (const name of e.emotions) {
+      const k = name.toLocaleLowerCase('es');
+      const c = counts.get(k) ?? { name, n: 0 };
+      c.n++;
+      counts.set(k, c);
+    }
+  return [...counts.values()].sort((a, b) => b.n - a.n).map((c) => c.name);
 }

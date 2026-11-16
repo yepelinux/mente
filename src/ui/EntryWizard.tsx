@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { EMOTIONS } from '../content/defaults';
+import { emotionColor } from '../content/emotionColors';
 import { toLocalDate } from '../lib/dates';
 import { mergeEmotions, saveEntry, validateEntry } from '../lib/store';
 import { updateGate } from '../lib/updateGate';
@@ -84,10 +85,12 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
               <button
                 type="button"
                 key={e}
-                class={picked.includes(e) ? 'chip on' : 'chip'}
+                class={picked.includes(e) ? 'chip emotion on' : 'chip emotion'}
+                style={{ '--emo': emotionColor(e) }}
                 aria-pressed={picked.includes(e)}
-                onClick={() => setPicked(picked.includes(e) ? picked.filter((x) => x !== e) : [...picked, e])}
+                onClick={() => setPicked((cur) => (cur.includes(e) ? cur.filter((x) => x !== e) : [...cur, e]))}
               >
+                <span class="dot" aria-hidden="true" />
                 {e}
               </button>
             ))}

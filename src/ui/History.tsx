@@ -5,6 +5,7 @@ import type { Entry, Settings } from '../lib/types';
 import { EntryWizard } from './EntryWizard';
 import { IntensityChart } from './IntensityChart';
 import { WeekCalendar } from './WeekCalendar';
+import { emotionColor } from '../content/emotionColors';
 
 interface Props {
   settings: Settings;
@@ -78,7 +79,19 @@ export function History({ settings, entries, onChange }: Props) {
               </button>
               {open === e.id && (
                 <dl>
-                  {e.emotions.length > 0 && <Item label={e.emotions.length > 1 ? 'Emociones' : 'Emoción'} value={e.emotions.join(', ')} />}
+                  {e.emotions.length > 0 && (
+                    <>
+                      <dt>{e.emotions.length > 1 ? 'Emociones' : 'Emoción'}</dt>
+                      <dd class="emotion-tags">
+                        {e.emotions.map((name) => (
+                          <span key={name}>
+                            <span class="swatch" style={{ background: emotionColor(name) }} />
+                            {name}
+                          </span>
+                        ))}
+                      </dd>
+                    </>
+                  )}
                   {e.trigger && <Item label="Disparador" value={e.trigger} />}
                   {e.evidenceFor && <Item label="A favor" value={e.evidenceFor} />}
                   {e.evidenceAgainst && <Item label="En contra" value={e.evidenceAgainst} />}

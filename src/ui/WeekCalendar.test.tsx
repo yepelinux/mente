@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, expect, test, vi } from 'vitest';
 import { entry } from '../lib/test-helpers';
 import { HOUR_PX, WeekCalendar } from './WeekCalendar';
+import { emotionColor } from '../content/emotionColors';
 
 afterEach(cleanup);
 
@@ -48,4 +49,19 @@ test('arrows move between weeks', () => {
 test('a week spanning two months shows both', () => {
   render(<WeekCalendar entries={[]} initialDate="2026-12-02" onSelect={vi.fn()} />);
   expect(screen.getByText('30 nov – 6 dic')).toBeTruthy();
+});
+
+test('blocks are painted with their emotions and the legend lists the week\'s emotions', () => {
+  const es = [
+    entry({ id: 'x', date: '2026-11-17', startTime: '10:00', durationMinutes: 60, emotions: ['Tristeza', 'Culpa'], thought: 'Pienso en eso' }),
+    entry({ id: 'y', date: '2026-11-25', startTime: '10:00', emotions: ['Enojo'], thought: 'Otra semana' }),
+  ];
+  render(<WeekCalendar entries={es} initialDate="2026-11-17" onSelect={vi.fn()} />);
+  const fill = (screen.getByRole('button', { name: /Pienso en eso/ }) as HTMLElement).style.getPropertyValue('--fill');
+  expect(fill).toContain(emotionColor('Tristeza'));
+  expect(fill).toContain(emotionColor('Culpa'));
+  const legend = screen.getByRole('list', { name: 'Emociones de la semana' });
+  expect(legend.textContent).toContain('Tristeza');
+  expect(legend.textContent).toContain('Culpa');
+  expect(legend.textContent).not.toContain('Enojo');
 });
