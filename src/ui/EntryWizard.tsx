@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { EMOTIONS } from '../content/defaults';
 import { toLocalDate } from '../lib/dates';
 import { mergeEmotions, saveEntry, validateEntry } from '../lib/store';
+import { updateGate } from '../lib/updateGate';
 import type { Entry, Settings, StepKey } from '../lib/types';
 
 const DURATION_PRESETS = [5, 15, 30, 60];
@@ -40,6 +41,8 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
   const [picked, setPicked] = useState(() => draft.emotions.filter((e) => EMOTIONS.includes(e)));
   const [typed, setTyped] = useState(() => draft.emotions.filter((e) => !EMOTIONS.includes(e)).join(', '));
   const [step, setStep] = useState(0);
+  // Don't let an app update reload the page while a thought is being written.
+  useEffect(() => updateGate.startEditing(), []);
   const saving = useRef(false);
   const [busy, setBusy] = useState(false);
 

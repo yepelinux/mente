@@ -8,7 +8,9 @@ export default defineConfig({
   plugins: [
     preact(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // We register ourselves (src/pwa.ts) to hold updates while something is being edited.
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'MENTE — plan de 30 días',

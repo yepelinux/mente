@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { defaultSettings } from '../content/defaults';
 import { clearAll, listEntries } from '../lib/store';
 import { EntryWizard } from './EntryWizard';
+import { updateGate } from '../lib/updateGate';
 import { entry } from '../lib/test-helpers';
 
 beforeEach(() => clearAll());
@@ -150,4 +151,15 @@ test('editing shows preset emotions as picked and the rest as typed text', () =>
   render(<EntryWizard settings={defaultSettings()} onDone={vi.fn()} initial={entry({ emotions: ['Miedo', 'Insomnio', 'Celos'] })} />);
   expect(screen.getByRole('button', { name: 'Miedo' }).getAttribute('aria-pressed')).toBe('true');
   expect((screen.getByLabelText('Otras emociones') as HTMLInputElement).value).toBe('Insomnio, Celos');
+});
+
+test('an app update waits while the wizard is open', async () => {
+  const apply = vi.fn();
+  updateGate.setApply(apply);
+  const view = render(<EntryWizard settings={defaultSettings()} onDone={vi.fn()} />);
+  updateGate.updateReady();
+  expect(apply).not.toHaveBeenCalled();
+  view.unmount();
+  // Preact runs effect cleanups shortly after unmount.
+  await waitFor(() => expect(apply).toHaveBeenCalledTimes(1));
 });

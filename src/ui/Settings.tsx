@@ -1,4 +1,5 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import { updateGate } from '../lib/updateGate';
 import { exportBackup, importBackup, parseBackup } from '../lib/backup';
 import { toLocalDate } from '../lib/dates';
 import type { Settings, StepKey } from '../lib/types';
@@ -16,6 +17,9 @@ export function SettingsScreen({ settings, onSave, onImported }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   // lastBackupAt changes outside this form (on export); it never counts as an edit.
   const dirty = JSON.stringify({ ...draft, lastBackupAt: null }) !== JSON.stringify({ ...settings, lastBackupAt: null });
+
+  // Unsaved edits hold back an app update until they are saved or discarded.
+  useEffect(() => (dirty ? updateGate.startEditing() : undefined), [dirty]);
 
   async function doExport() {
     const backup = await exportBackup();
