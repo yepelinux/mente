@@ -4,6 +4,7 @@ import { deleteEntry } from '../lib/store';
 import type { Entry, Settings } from '../lib/types';
 import { EntryWizard } from './EntryWizard';
 import { IntensityChart } from './IntensityChart';
+import { WeekCalendar } from './WeekCalendar';
 
 interface Props {
   settings: Settings;
@@ -48,12 +49,23 @@ export function History({ settings, entries, onChange }: Props) {
 
   return (
     <section class="history">
-      <IntensityChart data={dailyAverages(entries)} />
+      <WeekCalendar
+        entries={entries}
+        onSelect={(id) => {
+          setOpen(id);
+          // Wait for the expanded card to render, then bring it into view.
+          requestAnimationFrame(() => document.getElementById(`entry-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        }}
+      />
+      <details class="card evolution">
+        <summary>Evolución de la intensidad</summary>
+        <IntensityChart data={dailyAverages(entries)} />
+      </details>
       {[...groups].map(([date, es]) => (
         <div key={date}>
           <h3>{formatDate(date)}</h3>
           {es.map((e) => (
-            <article class="card entry" key={e.id}>
+            <article class={open === e.id ? 'card entry selected' : 'card entry'} key={e.id} id={`entry-${e.id}`}>
               <button type="button" class="row" aria-expanded={open === e.id} onClick={() => setOpen(open === e.id ? null : e.id)}>
                 <span class="thought">
                   {when(e) && <small class="when">{when(e)}</small>}

@@ -183,4 +183,38 @@ legend { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
 input[type='time'] { display: block; width: 100%; margin-top: 6px; font: inherit; font-weight: 400; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
 .entry .when { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
 
+/* Week calendar */
+.calendar { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 8px 8px; margin-bottom: 14px; }
+.cal-nav { display: flex; align-items: center; gap: 8px; padding: 0 4px 10px; }
+.cal-nav strong { flex: 1; text-align: center; }
+button.icon { padding: 6px 14px; font-size: 1.2rem; line-height: 1; }
+button.small { padding: 6px 12px; font-size: 0.85rem; }
+.cal-grid { --gutter: 22px; }
+.cal-head, .allday, .cal-hours { display: grid; grid-template-columns: var(--gutter) repeat(7, 1fr); }
+.cal-head span { text-align: center; line-height: 1.1; padding-bottom: 6px; }
+.cal-head small { display: block; color: var(--muted); font-size: 0.7rem; }
+.cal-head b { font-size: 0.95rem; }
+.cal-head .today b { background: var(--accent); color: var(--card); border-radius: 999px; padding: 1px 6px; }
+.allday { border-top: 1px solid var(--border); padding: 4px 0; }
+.allday > div { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+.chip-event { padding: 1px 6px; font-size: 0.7rem; border-radius: 6px; color: var(--text); background: color-mix(in srgb, var(--accent) var(--tone), var(--card)); }
+.cal-body { max-height: 52vh; overflow-y: auto; border-top: 1px solid var(--border); overscroll-behavior: contain; }
+.cal-hours { position: relative; background-image: repeating-linear-gradient(to bottom, var(--border) 0 1px, transparent 1px var(--hour)); }
+.cal-hours .gutter { position: relative; }
+.cal-hours .gutter span { position: absolute; right: 4px; transform: translateY(-50%); font-size: 0.65rem; color: var(--muted); }
+.cal-day { position: relative; border-left: 1px solid var(--border); }
+.cal-day.today { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.event {
+  position: absolute; box-sizing: border-box; min-height: 6px; padding: 2px 3px; overflow: hidden;
+  border: 1px solid var(--card); border-radius: 5px; font-size: 0.62rem; font-weight: 600; line-height: 1.15; text-align: left;
+  color: var(--text); background: color-mix(in srgb, var(--accent) var(--tone), var(--card));
+}
+.event span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; word-break: break-word; }
+.event.no-duration { border: 1.5px dashed var(--accent); }
+.event.continued { border-top-left-radius: 0; border-top-right-radius: 0; }
+.event.continues { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.cal-legend { margin: 8px 4px 0; font-size: 0.8rem; color: var(--muted); }
+.evolution .chart { border: none; padding: 8px 0 0; margin: 0; }
+.entry.selected { border-color: var(--accent); }
+
 details summary { font-weight: 600; cursor: pointer; }
