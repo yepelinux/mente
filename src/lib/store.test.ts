@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { clearAll, getSettings, listDays, listEntries, saveEntry, saveSettings, setDay, validateEntry, deleteEntry } from './store';
 import { entry } from './test-helpers';
+import { createStore, set } from 'idb-keyval';
 
 beforeEach(() => clearAll());
 
@@ -72,5 +73,21 @@ describe('validateEntry', () => {
   });
   test('valid draft passes, 0 included', () => {
     expect(validateEntry({ thought: 'x', intensityBefore: 0 })).toBeNull();
+  });
+});
+
+describe('entries saved before multi-emotion', () => {
+  const raw = createStore('mente', 'kv');
+  test('a single emotion becomes a one-item list', async () => {
+    const { emotions: _, ...legacy } = entry();
+    await set('entries', [{ ...legacy, emotion: 'Culpa' }], raw);
+    const [e] = await listEntries();
+    expect(e.emotions).toEqual(['Culpa']);
+    expect('emotion' in e).toBe(false);
+  });
+  test('an empty emotion becomes an empty list', async () => {
+    const { emotions: _, ...legacy } = entry();
+    await set('entries', [{ ...legacy, emotion: '' }], raw);
+    expect((await listEntries())[0].emotions).toEqual([]);
   });
 });

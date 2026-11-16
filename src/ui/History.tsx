@@ -66,7 +66,7 @@ export function History({ settings, entries, onChange }: Props) {
               </button>
               {open === e.id && (
                 <dl>
-                  {e.emotion && <Item label="Emoción" value={e.emotion} />}
+                  {e.emotions.length > 0 && <Item label={e.emotions.length > 1 ? 'Emociones' : 'Emoción'} value={e.emotions.join(', ')} />}
                   {e.trigger && <Item label="Disparador" value={e.trigger} />}
                   {e.evidenceFor && <Item label="A favor" value={e.evidenceFor} />}
                   {e.evidenceAgainst && <Item label="En contra" value={e.evidenceAgainst} />}

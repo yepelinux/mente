@@ -6,7 +6,8 @@ export interface Entry {
   id: string;
   createdAt: string;
   date: LocalDate;
-  emotion: string;
+  /** Emotions felt, in the order picked (presets first, then typed ones). */
+  emotions: string[];
   intensityBefore: number;
   /** Local time the thought started, HH:MM (24 h). */
   startTime?: string;

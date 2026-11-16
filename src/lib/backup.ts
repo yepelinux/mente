@@ -1,4 +1,4 @@
-import { getSettings, listDays, listEntries, replaceAll, validateEntry } from './store';
+import { getSettings, listDays, listEntries, normalizeEntry, replaceAll, validateEntry } from './store';
 import type { Backup, StepKey } from './types';
 import { PLAN_DAYS } from './plan';
 
@@ -31,12 +31,14 @@ export function parseBackup(text: string): Backup {
   if (data?.app !== 'mente') fail('es de otra app.');
   if (data.version !== 1) fail(`versión ${data.version} no soportada.`);
   if (!Array.isArray(data.entries) || !Array.isArray(data.days)) fail('faltan registros.');
+  data.entries = data.entries.map(normalizeEntry);
   for (const e of data.entries) {
     if (
       typeof e?.id !== 'string' ||
       typeof e.createdAt !== 'string' ||
       !isDate(e.date) ||
-      typeof e.emotion !== 'string' ||
+      !Array.isArray(e.emotions) ||
+      !e.emotions.every((x: unknown) => typeof x === 'string') ||
       validateEntry(e)
     )
       fail('hay un registro dañado.');

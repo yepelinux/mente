@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { EMOTIONS } from '../content/defaults';
 import { toLocalDate } from '../lib/dates';
-import { saveEntry, validateEntry } from '../lib/store';
+import { mergeEmotions, saveEntry, validateEntry } from '../lib/store';
 import type { Entry, Settings, StepKey } from '../lib/types';
 
 const DURATION_PRESETS = [5, 15, 30, 60];
@@ -30,12 +30,15 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
         id: crypto.randomUUID(),
         createdAt: new Date().toISOString(),
         date: toLocalDate(new Date()),
-        emotion: '',
+        emotions: [],
         intensityBefore: 5,
         startTime: currentTime(),
         thought: '',
       },
   );
+  // Presets are toggled as chips; anything else lives in a comma-separated text field.
+  const [picked, setPicked] = useState(() => draft.emotions.filter((e) => EMOTIONS.includes(e)));
+  const [typed, setTyped] = useState(() => draft.emotions.filter((e) => !EMOTIONS.includes(e)).join(', '));
   const [step, setStep] = useState(0);
   const saving = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -50,7 +53,7 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
     saving.current = true;
     setBusy(true);
     try {
-      await saveEntry(clean(draft));
+      await saveEntry(clean({ ...draft, emotions: mergeEmotions(picked, typed) }));
       onDone();
     } finally {
       saving.current = false;
@@ -73,22 +76,22 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
       {key === 'medir' && (
         <>
           <fieldset class="chips">
-            <legend>Emoción</legend>
+            <legend>Emociones (podés elegir varias)</legend>
             {EMOTIONS.map((e) => (
               <button
                 type="button"
                 key={e}
-                class={draft.emotion === e ? 'chip on' : 'chip'}
-                aria-pressed={draft.emotion === e}
-                onClick={() => update({ emotion: draft.emotion === e ? '' : e })}
+                class={picked.includes(e) ? 'chip on' : 'chip'}
+                aria-pressed={picked.includes(e)}
+                onClick={() => setPicked(picked.includes(e) ? picked.filter((x) => x !== e) : [...picked, e])}
               >
                 {e}
               </button>
             ))}
           </fieldset>
           <label>
-            Otra emoción
-            <input value={EMOTIONS.includes(draft.emotion) ? '' : draft.emotion} onInput={(ev) => update({ emotion: ev.currentTarget.value })} />
+            Otras emociones
+            <input value={typed} placeholder="Separadas por coma" onInput={(ev) => setTyped(ev.currentTarget.value)} />
           </label>
           <Intensity label="Intensidad inicial" value={draft.intensityBefore} onChange={(n) => update({ intensityBefore: n })} />
           <label>
@@ -194,7 +197,7 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
 
 /** Drop empty optional fields so stored entries stay tidy. */
 function clean(e: Entry): Entry {
-  const out: Entry = { ...e, thought: e.thought.trim(), emotion: e.emotion.trim() };
+  const out: Entry = { ...e, thought: e.thought.trim() };
   // The final slider starts at the initial intensity; keep what the user saw.
   if (out.reframe?.trim() && out.intensityAfter === undefined) out.intensityAfter = out.intensityBefore;
   for (const k of ['trigger', 'evidenceFor', 'evidenceAgainst', 'reframe'] as const) {

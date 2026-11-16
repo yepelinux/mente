@@ -4,13 +4,35 @@ import type { DayLog, Entry, Settings } from './types';
 
 const db = createStore('mente', 'kv');
 
+/** Entries saved before multi-emotion had `emotion: string`; convert them to `emotions: string[]`. */
+export function normalizeEntry(raw: any): Entry {
+  if (Array.isArray(raw?.emotions) || typeof raw?.emotion !== 'string') return raw;
+  const { emotion, ...rest } = raw;
+  const trimmed = emotion.trim();
+  return { ...rest, emotions: trimmed ? [trimmed] : [] };
+}
+
+/** Picked preset emotions plus comma-separated typed ones, trimmed and without repeats (case-insensitive). */
+export function mergeEmotions(picked: string[], typed: string): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const e of [...picked, ...typed.split(',')]) {
+    const t = e.trim();
+    if (t && !seen.has(t.toLocaleLowerCase('es'))) {
+      seen.add(t.toLocaleLowerCase('es'));
+      out.push(t);
+    }
+  }
+  return out;
+}
+
 export async function listEntries(): Promise<Entry[]> {
   const all = (await get<Entry[]>('entries', db)) ?? [];
-  return [...all].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return all.map(normalizeEntry).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function saveEntry(e: Entry): Promise<void> {
-  const all = (await get<Entry[]>('entries', db)) ?? [];
+  const all = ((await get<Entry[]>('entries', db)) ?? []).map(normalizeEntry);
   await set('entries', [...all.filter((x) => x.id !== e.id), e], db);
 }
 

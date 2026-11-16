@@ -30,7 +30,8 @@ test.each([
   ['stepTexts null', JSON.stringify({ app: 'mente', version: 1, entries: [], days: [], settings: { ...validSettings(), stepTexts: null } })],
   ['a step text missing', JSON.stringify({ app: 'mente', version: 1, entries: [], days: [], settings: { ...validSettings(), stepTexts: {} } })],
   ['entry without date', JSON.stringify({ app: 'mente', version: 1, entries: [{ ...entry(), date: undefined }], days: [], settings: validSettings() })],
-  ['entry without emotion', JSON.stringify({ app: 'mente', version: 1, entries: [{ ...entry(), emotion: undefined }], days: [], settings: validSettings() })],
+  ['emotions not a list of strings', JSON.stringify({ app: 'mente', version: 1, entries: [{ ...entry(), emotions: [1] }], days: [], settings: validSettings() })],
+  ['entry with neither emotion nor emotions', JSON.stringify({ app: 'mente', version: 1, entries: [{ ...entry(), emotions: undefined }], days: [], settings: validSettings() })],
   ['bad plan start date', JSON.stringify({ app: 'mente', version: 1, entries: [], days: [], settings: { ...validSettings(), planStartDate: 'ayer' } })],
   ['non-string prompt', JSON.stringify({ app: 'mente', version: 1, entries: [], days: [], settings: { ...validSettings(), dayPrompts: Array(30).fill(1) } })],
 ])('rejects %s', (_name, text) => {
@@ -57,4 +58,12 @@ test('entries with start time and duration survive a backup', () => {
 test('a backup with an invalid duration is rejected', () => {
   const text = JSON.stringify({ app: 'mente', version: 1, exportedAt: 'x', entries: [entry({ durationMinutes: -3 })], days: [], settings: validSettings() });
   expect(() => parseBackup(text)).toThrow();
+});
+
+test('a backup from before multi-emotion is accepted and converted', () => {
+  const { emotions: _, ...legacy } = entry();
+  const text = JSON.stringify({ app: 'mente', version: 1, exportedAt: 'x', entries: [{ ...legacy, emotion: 'Miedo' }], days: [], settings: validSettings() });
+  const [e] = parseBackup(text).entries;
+  expect(e.emotions).toEqual(['Miedo']);
+  expect('emotion' in e).toBe(false);
 });

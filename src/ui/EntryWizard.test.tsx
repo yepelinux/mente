@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { defaultSettings } from '../content/defaults';
 import { clearAll, listEntries } from '../lib/store';
 import { EntryWizard } from './EntryWizard';
+import { entry } from '../lib/test-helpers';
 
 beforeEach(() => clearAll());
 afterEach(cleanup);
@@ -114,4 +115,39 @@ test('leaving the duration empty saves no duration', async () => {
   await waitFor(() => expect(onDone).toHaveBeenCalled());
   const [e] = await listEntries();
   expect(e.durationMinutes).toBeUndefined();
+});
+
+async function saveFromMedir(onDone: () => void) {
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.input(screen.getByLabelText('Pensamiento'), { target: { value: 'x' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+  await waitFor(() => expect(onDone).toHaveBeenCalled());
+  return (await listEntries())[0];
+}
+
+test('several emotions can be picked, plus others typed and comma-separated', async () => {
+  const onDone = vi.fn();
+  render(<EntryWizard settings={defaultSettings()} onDone={onDone} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Ansiedad' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Culpa' }));
+  fireEvent.input(screen.getByLabelText('Otras emociones'), { target: { value: ' Cansancio , ansiedad,, ' } });
+  const e = await saveFromMedir(onDone);
+  expect(e.emotions).toEqual(['Ansiedad', 'Culpa', 'Cansancio']);
+});
+
+test('tapping a picked emotion again unpicks it', async () => {
+  const onDone = vi.fn();
+  render(<EntryWizard settings={defaultSettings()} onDone={onDone} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Miedo' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Enojo' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Miedo' }));
+  expect(screen.getByRole('button', { name: 'Miedo' }).getAttribute('aria-pressed')).toBe('false');
+  const e = await saveFromMedir(onDone);
+  expect(e.emotions).toEqual(['Enojo']);
+});
+
+test('editing shows preset emotions as picked and the rest as typed text', () => {
+  render(<EntryWizard settings={defaultSettings()} onDone={vi.fn()} initial={entry({ emotions: ['Miedo', 'Insomnio', 'Celos'] })} />);
+  expect(screen.getByRole('button', { name: 'Miedo' }).getAttribute('aria-pressed')).toBe('true');
+  expect((screen.getByLabelText('Otras emociones') as HTMLInputElement).value).toBe('Insomnio, Celos');
 });
