@@ -14,18 +14,37 @@ const STEP_KEYS: StepKey[] = ['medir', 'exponer', 'neutralizar', 'transformar', 
 export function SettingsScreen({ settings, onSave, onImported }: Props) {
   const [draft, setDraft] = useState(settings);
   const [message, setMessage] = useState<string | null>(null);
-  const dirty = JSON.stringify(draft) !== JSON.stringify(settings);
+  // lastBackupAt changes outside this form (on export); it never counts as an edit.
+  const dirty = JSON.stringify({ ...draft, lastBackupAt: null }) !== JSON.stringify({ ...settings, lastBackupAt: null });
 
   async function doExport() {
     const backup = await exportBackup();
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `mente-respaldo-${toLocalDate(new Date())}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    const name = `mente-respaldo-${toLocalDate(new Date())}.json`;
+    const file = new File([JSON.stringify(backup, null, 2)], name, { type: 'application/json' });
+    let saved: boolean;
+    if (navigator.canShare?.({ files: [file] })) {
+      // Share sheet: save to Drive, send by mail, etc. Resolves only when the user completed it.
+      try {
+        await navigator.share({ files: [file], title: 'Respaldo de MENTE' });
+        saved = true;
+      } catch {
+        saved = false;
+      }
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(file);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      // A download can't be confirmed programmatically; ask before silencing the reminder.
+      saved = confirm('¿Se descargó el archivo del respaldo?');
+    }
+    if (!saved) {
+      setMessage('No se guardó el respaldo. Probá de nuevo cuando quieras.');
+      return;
+    }
     await onSave({ ...settings, lastBackupAt: new Date().toISOString() });
-    setMessage('Respaldo descargado. Guardalo en Drive o mandátelo por mail.');
+    setMessage('Respaldo guardado. Tenelo en Drive o en tu mail, fuera del teléfono.');
   }
 
   async function doImport(file: File | undefined) {
@@ -44,7 +63,7 @@ export function SettingsScreen({ settings, onSave, onImported }: Props) {
 
   async function restart() {
     if (!confirm('El plan vuelve a empezar hoy. Tus registros se mantienen. ¿Seguir?')) return;
-    const next = { ...settings, planStartDate: toLocalDate(new Date()) };
+    const next = { ...draft, planStartDate: toLocalDate(new Date()), lastBackupAt: settings.lastBackupAt };
     setDraft(next);
     await onSave(next);
   }
@@ -69,7 +88,10 @@ export function SettingsScreen({ settings, onSave, onImported }: Props) {
           </button>
           <label class="button secondary">
             Importar
-            <input type="file" accept="application/json,.json" hidden onChange={(e) => doImport(e.currentTarget.files?.[0])} />
+            <input type="file" accept="application/json,.json" hidden onChange={(e) => {
+                const input = e.currentTarget;
+                doImport(input.files?.[0]).finally(() => (input.value = ''));
+              }} />
           </label>
         </div>
       </div>

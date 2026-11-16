@@ -72,3 +72,13 @@ test('a reframe saved without moving the final slider records the value shown', 
   const [e] = await listEntries();
   expect(e.intensityAfter).toBe(8);
 });
+
+test('Cancelar leaves without saving', async () => {
+  const onDone = vi.fn();
+  render(<EntryWizard settings={defaultSettings()} onDone={onDone} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.input(screen.getByLabelText('Pensamiento'), { target: { value: 'x' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+  expect(onDone).toHaveBeenCalled();
+  expect(await listEntries()).toEqual([]);
+});

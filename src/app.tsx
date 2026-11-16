@@ -57,6 +57,7 @@ export function App() {
         {route === 'nuevo' && (
           <EntryWizard
             settings={settings}
+            onCancel={() => navigate('hoy')}
             onDone={async () => {
               await reload();
               navigate('historial');

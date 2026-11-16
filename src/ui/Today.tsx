@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'preact/hooks';
 import { toLocalDate } from '../lib/dates';
 import { blockForDay, dayOfPlan, needsBackupReminder, PLAN_DAYS, streak, type Block } from '../lib/plan';
 import { setDay } from '../lib/store';
@@ -19,14 +20,32 @@ interface Props {
   onStart: () => void;
 }
 
+/** Re-renders when the app comes back to the foreground, so the date never goes stale. */
+function useToday() {
+  const [today, setToday] = useState(() => toLocalDate(new Date()));
+  useEffect(() => {
+    const refresh = () => setToday(toLocalDate(new Date()));
+    document.addEventListener('visibilitychange', refresh);
+    addEventListener('focus', refresh);
+    return () => {
+      document.removeEventListener('visibilitychange', refresh);
+      removeEventListener('focus', refresh);
+    };
+  }, []);
+  return today;
+}
+
 export function Today({ settings, days, hasData, onChange, onStart }: Props) {
-  const today = toLocalDate(new Date());
+  const today = useToday();
   const doneDates = days.filter((d) => d.practiceDone).map((d) => d.date);
   const todayLog = days.find((d) => d.date === today);
   const status = settings.planStartDate ? dayOfPlan(settings.planStartDate, today) : null;
 
   async function toggle() {
-    await setDay({ ...todayLog, date: today, practiceDone: !todayLog?.practiceDone });
+    // Use the real current date: the screen may have been open since yesterday.
+    const now = toLocalDate(new Date());
+    const log = days.find((d) => d.date === now);
+    await setDay({ ...log, date: now, practiceDone: !log?.practiceDone });
     onChange();
   }
 

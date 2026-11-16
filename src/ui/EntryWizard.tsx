@@ -9,11 +9,13 @@ const STEPS: StepKey[] = ['medir', 'exponer', 'neutralizar', 'transformar'];
 interface Props {
   settings: Settings;
   onDone: () => void;
+  /** Leave without saving; defaults to onDone. */
+  onCancel?: () => void;
   /** Existing entry to edit; omitted for a new one. */
   initial?: Entry;
 }
 
-export function EntryWizard({ settings, onDone, initial }: Props) {
+export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
   // The id is fixed at mount: repeated saves upsert the same entry.
   const [draft, setDraft] = useState<Entry>(
     () =>
@@ -124,6 +126,9 @@ export function EntryWizard({ settings, onDone, initial }: Props) {
       )}
 
       <div class="actions">
+        <button type="button" class="danger" onClick={onCancel ?? onDone}>
+          Cancelar
+        </button>
         {step > 0 && (
           <button type="button" class="secondary" onClick={() => setStep(step - 1)}>
             Atrás
