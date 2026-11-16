@@ -57,3 +57,18 @@ test('reaching Transformar records the reframe and final intensity', async () =>
   expect(e.reframe).toBe('Algunas cosas pueden salir bien');
   expect(e.intensityAfter).toBe(3);
 });
+
+test('a reframe saved without moving the final slider records the value shown', async () => {
+  const onDone = vi.fn();
+  render(<EntryWizard settings={defaultSettings()} onDone={onDone} />);
+  fireEvent.input(screen.getByLabelText('Intensidad inicial'), { target: { value: '8' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.input(screen.getByLabelText('Pensamiento'), { target: { value: 'x' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
+  fireEvent.input(screen.getByLabelText('Pensamiento alternativo'), { target: { value: 'y' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Guardar' }));
+  await waitFor(() => expect(onDone).toHaveBeenCalled());
+  const [e] = await listEntries();
+  expect(e.intensityAfter).toBe(8);
+});

@@ -36,7 +36,8 @@ export function streak(doneDates: LocalDate[], today: LocalDate): number {
   return count;
 }
 
-export function needsBackupReminder(lastBackupAt: string | null, now: Date): boolean {
+export function needsBackupReminder(lastBackupAt: string | null, now: Date, hasData = true): boolean {
+  if (!hasData) return false;
   if (!lastBackupAt) return true;
   return now.getTime() - new Date(lastBackupAt).getTime() > BACKUP_REMINDER_DAYS * 86_400_000;
 }

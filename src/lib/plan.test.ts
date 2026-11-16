@@ -68,4 +68,5 @@ describe('needsBackupReminder', () => {
   test('never backed up', () => expect(needsBackupReminder(null, now)).toBe(true));
   test('8 days ago', () => expect(needsBackupReminder(daysAgo(8), now)).toBe(true));
   test('6 days ago', () => expect(needsBackupReminder(daysAgo(6), now)).toBe(false));
+  test('nothing to back up yet: no reminder', () => expect(needsBackupReminder(null, now, false)).toBe(false));
 });

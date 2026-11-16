@@ -14,11 +14,12 @@ const BLOCK_NAMES: Record<Block, string> = {
 interface Props {
   settings: Settings;
   days: DayLog[];
+  hasData: boolean;
   onChange: () => void;
   onStart: () => void;
 }
 
-export function Today({ settings, days, onChange, onStart }: Props) {
+export function Today({ settings, days, hasData, onChange, onStart }: Props) {
   const today = toLocalDate(new Date());
   const doneDates = days.filter((d) => d.practiceDone).map((d) => d.date);
   const todayLog = days.find((d) => d.date === today);
@@ -31,7 +32,7 @@ export function Today({ settings, days, onChange, onStart }: Props) {
 
   return (
     <section class="today">
-      {needsBackupReminder(settings.lastBackupAt, new Date()) && (
+      {needsBackupReminder(settings.lastBackupAt, new Date(), hasData) && (
         <a class="banner" href="#/ajustes">
           Hace más de una semana que no guardás un respaldo. Tocá para hacerlo.
         </a>

@@ -49,6 +49,7 @@ export function App() {
           <Today
             settings={settings}
             days={days}
+            hasData={entries.length > 0 || days.length > 0}
             onChange={reload}
             onStart={() => updateSettings({ ...settings, planStartDate: toLocalDate(new Date()) })}
           />

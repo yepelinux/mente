@@ -148,6 +148,8 @@ export function EntryWizard({ settings, onDone, initial }: Props) {
 /** Drop empty optional fields so stored entries stay tidy. */
 function clean(e: Entry): Entry {
   const out: Entry = { ...e, thought: e.thought.trim(), emotion: e.emotion.trim() };
+  // The final slider starts at the initial intensity; keep what the user saw.
+  if (out.reframe?.trim() && out.intensityAfter === undefined) out.intensityAfter = out.intensityBefore;
   for (const k of ['trigger', 'evidenceFor', 'evidenceAgainst', 'reframe'] as const) {
     const v = out[k]?.trim();
     if (v) out[k] = v;

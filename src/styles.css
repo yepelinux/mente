@@ -65,7 +65,8 @@ nav a {
 nav a.active { color: var(--accent); }
 
 h2 { margin: 0 0 8px; font-size: 1.3rem; }
-h3 { margin: 20px 4px 8px; font-size: 0.95rem; color: var(--muted); text-transform: capitalize; }
+h3 { margin: 20px 4px 8px; font-size: 0.95rem; color: var(--muted); }
+h3::first-letter { text-transform: uppercase; }
 
 .card {
   background: var(--card);
