@@ -1,0 +1,39 @@
+import type { LocalDate } from './dates';
+
+export type StepKey = 'medir' | 'exponer' | 'neutralizar' | 'transformar' | 'entrenar';
+
+export interface Entry {
+  id: string;
+  createdAt: string;
+  date: LocalDate;
+  emotion: string;
+  intensityBefore: number;
+  trigger?: string;
+  thought: string;
+  evidenceFor?: string;
+  evidenceAgainst?: string;
+  reframe?: string;
+  intensityAfter?: number;
+}
+
+export interface DayLog {
+  date: LocalDate;
+  practiceDone: boolean;
+  note?: string;
+}
+
+export interface Settings {
+  planStartDate: LocalDate | null;
+  stepTexts: Record<StepKey, { title: string; help: string }>;
+  dayPrompts: string[];
+  lastBackupAt: string | null;
+}
+
+export interface Backup {
+  app: 'mente';
+  version: 1;
+  exportedAt: string;
+  entries: Entry[];
+  days: DayLog[];
+  settings: Settings;
+}
