@@ -47,3 +47,14 @@ test('a complete valid backup with entries is accepted', () => {
   const text = JSON.stringify({ app: 'mente', version: 1, exportedAt: 'x', entries: [entry()], days: [], settings: { ...validSettings(), planStartDate: '2026-11-15' } });
   expect(parseBackup(text).entries).toHaveLength(1);
 });
+
+test('entries with start time and duration survive a backup', () => {
+  const e = entry({ startTime: '21:30', durationMinutes: 45 });
+  const text = JSON.stringify({ app: 'mente', version: 1, exportedAt: 'x', entries: [e], days: [], settings: validSettings() });
+  expect(parseBackup(text).entries[0]).toEqual(e);
+});
+
+test('a backup with an invalid duration is rejected', () => {
+  const text = JSON.stringify({ app: 'mente', version: 1, exportedAt: 'x', entries: [entry({ durationMinutes: -3 })], days: [], settings: validSettings() });
+  expect(() => parseBackup(text)).toThrow();
+});

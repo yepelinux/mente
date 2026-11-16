@@ -55,7 +55,10 @@ export function History({ settings, entries, onChange }: Props) {
           {es.map((e) => (
             <article class="card entry" key={e.id}>
               <button type="button" class="row" aria-expanded={open === e.id} onClick={() => setOpen(open === e.id ? null : e.id)}>
-                <span class="thought">{e.thought}</span>
+                <span class="thought">
+                  {when(e) && <small class="when">{when(e)}</small>}
+                  {e.thought}
+                </span>
                 <span class="level">
                   {e.intensityBefore}
                   {e.intensityAfter !== undefined && ` → ${e.intensityAfter}`}
@@ -84,6 +87,19 @@ export function History({ settings, entries, onChange }: Props) {
       ))}
     </section>
   );
+}
+
+/** "21:30 · 45 min", or whichever part is present. */
+export function when(e: Entry): string {
+  const parts = [e.startTime, e.durationMinutes !== undefined ? formatDuration(e.durationMinutes) : undefined];
+  return parts.filter(Boolean).join(' · ');
+}
+
+function formatDuration(min: number): string {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
 }
 
 function Item({ label, value }: { label: string; value: string }) {

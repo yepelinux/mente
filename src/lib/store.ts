@@ -61,5 +61,10 @@ export function validateEntry(draft: Partial<Entry>): string | null {
   if (!draft.thought?.trim()) return 'Escribí el pensamiento.';
   if (draft.intensityAfter !== undefined && !isIntensity(draft.intensityAfter))
     return 'La intensidad final tiene que ser de 0 a 10.';
+  if (draft.startTime !== undefined && !/^([01]\d|2[0-3]):[0-5]\d$/.test(draft.startTime))
+    return 'La hora de inicio no es válida.';
+  const d = draft.durationMinutes;
+  if (d !== undefined && !(Number.isInteger(d) && d >= 1 && d <= 1440))
+    return 'La duración tiene que ser de 1 a 1440 minutos.';
   return null;
 }

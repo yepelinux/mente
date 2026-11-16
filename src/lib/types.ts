@@ -8,6 +8,10 @@ export interface Entry {
   date: LocalDate;
   emotion: string;
   intensityBefore: number;
+  /** Local time the thought started, HH:MM (24 h). */
+  startTime?: string;
+  /** How long it lasted, in whole minutes (1–1440). */
+  durationMinutes?: number;
   trigger?: string;
   thought: string;
   evidenceFor?: string;

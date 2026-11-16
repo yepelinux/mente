@@ -178,4 +178,9 @@ legend { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
 .chart .key.before { background: var(--accent); }
 .chart .key.after { background: var(--after); }
 
+.duration { margin: 12px 0; }
+.duration input { display: block; width: 100%; margin-top: 8px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+input[type='time'] { display: block; width: 100%; margin-top: 6px; font: inherit; font-weight: 400; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.entry .when { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+
 details summary { font-weight: 600; cursor: pointer; }

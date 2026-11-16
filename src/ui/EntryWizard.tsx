@@ -4,6 +4,13 @@ import { toLocalDate } from '../lib/dates';
 import { saveEntry, validateEntry } from '../lib/store';
 import type { Entry, Settings, StepKey } from '../lib/types';
 
+const DURATION_PRESETS = [5, 15, 30, 60];
+
+const currentTime = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
 const STEPS: StepKey[] = ['medir', 'exponer', 'neutralizar', 'transformar'];
 
 interface Props {
@@ -25,6 +32,7 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
         date: toLocalDate(new Date()),
         emotion: '',
         intensityBefore: 5,
+        startTime: currentTime(),
         thought: '',
       },
   );
@@ -83,6 +91,40 @@ export function EntryWizard({ settings, onDone, onCancel, initial }: Props) {
             <input value={EMOTIONS.includes(draft.emotion) ? '' : draft.emotion} onInput={(ev) => update({ emotion: ev.currentTarget.value })} />
           </label>
           <Intensity label="Intensidad inicial" value={draft.intensityBefore} onChange={(n) => update({ intensityBefore: n })} />
+          <label>
+            ¿A qué hora empezó?
+            <input type="time" value={draft.startTime ?? ''} onInput={(ev) => update({ startTime: ev.currentTarget.value || undefined })} />
+          </label>
+          <fieldset class="duration">
+            <legend>¿Cuánto duró? (opcional)</legend>
+            <div class="chips">
+              {DURATION_PRESETS.map((m) => (
+                <button
+                  type="button"
+                  key={m}
+                  class={draft.durationMinutes === m ? 'chip on' : 'chip'}
+                  aria-pressed={draft.durationMinutes === m}
+                  onClick={() => update({ durationMinutes: draft.durationMinutes === m ? undefined : m })}
+                >
+                  {m} min
+                </button>
+              ))}
+            </div>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={1440}
+              step={1}
+              aria-label="Duración en minutos"
+              placeholder="Otro, en minutos"
+              value={draft.durationMinutes ?? ''}
+              onInput={(ev) => {
+                const v = ev.currentTarget.value;
+                update({ durationMinutes: v === '' ? undefined : Number(v) });
+              }}
+            />
+          </fieldset>
           <label>
             ¿Qué lo disparó? (opcional)
             <textarea rows={2} value={draft.trigger ?? ''} onInput={(ev) => update({ trigger: ev.currentTarget.value })} />

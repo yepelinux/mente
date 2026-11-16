@@ -57,6 +57,19 @@ describe('validateEntry', () => {
   test('intensity after outside 0–10 is rejected', () => {
     expect(validateEntry({ thought: 'x', intensityBefore: 5, intensityAfter: 12 })).not.toBeNull();
   });
+  test('start time must be HH:MM', () => {
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, startTime: '25:00' })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, startTime: '9:5' })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, startTime: '23:59' })).toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, startTime: '00:00' })).toBeNull();
+  });
+  test('duration must be whole minutes between 1 and 1440', () => {
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, durationMinutes: 0 })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, durationMinutes: -5 })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, durationMinutes: 1.5 })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, durationMinutes: 1441 })).not.toBeNull();
+    expect(validateEntry({ thought: 'x', intensityBefore: 5, durationMinutes: 1440 })).toBeNull();
+  });
   test('valid draft passes, 0 included', () => {
     expect(validateEntry({ thought: 'x', intensityBefore: 0 })).toBeNull();
   });
